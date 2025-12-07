@@ -10,9 +10,9 @@ LUNA
 
 │
 ├── code/
-   ├── street-lighting/
-   │   └── ledcode.txt             
+   ├── ledcode.txt
+   │                
    │
-   ├── water-level/
-   │   └── waterlevelcode.ino     
+   ├──  waterlevelcode.txt
+   │       
 
