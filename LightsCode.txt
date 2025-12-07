@@ -1,0 +1,101 @@
+//musai pt blink
+#define BLYNK_TEMPLATE_ID "TMPL4QS-u8doD"
+#define BLYNK_TEMPLATE_NAME "LUNA"
+#define BLYNK_AUTH_TOKEN "vd1NQx9I98EIAluHPjpLhyX08XIYqsO6"
+
+
+//hardodam niste pini
+#define LED_ULTRASONIC 12
+#define LED_POT 13
+
+#define POT_PIN 34
+
+//ultrasonic1
+#define TRIG1_PIN 26
+#define ECHO1_PIN 25
+
+// ultrasonic2
+#define TRIG2_PIN 14
+#define ECHO2_PIN 27
+
+#define LEDC_RESOLUTION 10
+#define LEDC_FREQ 5000
+
+
+// configura conexiunea intre esp- aplicatie
+#include <WiFi.h>
+#include <BlynkSimpleEsp32.h>
+char ssid[] = "cloudflight-guest";
+char pass[] = "digitalfuture";
+
+BlynkTimer timer;
+unsigned long lastDetection1 = 0;  // ultima dată când Ultrasonic1 a detectat
+unsigned long lastDetection2 = 0;  // ultima dată când Ultrasonic2 a detectat
+const unsigned long holdTime = 4000;
+
+
+// DHT
+#include "DHT.h"
+#define DHTPIN 23     
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
+
+
+int pwmUltrasonic = 0;
+int pwmPot = 0;
+
+
+
+// Citire ultrasonic
+long readDistanceCM(int TRIG, int ECHO) {
+  digitalWrite(TRIG, LOW);
+  delayMicroseconds(4);
+  digitalWrite(TRIG, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG, LOW);
+
+  long duration = pulseIn(ECHO, HIGH, 30000);
+  if (duration == 0) return -1;
+
+  return duration * 0.034 / 2;
+}
+
+// Trimite potențiometru la Blynk
+void trimiteValoarePot() {
+  int val = analogRead(POT_PIN);
+  int pctPot = map(val, 0, 4095, 0, 100);
+  Blynk.virtualWrite(V4, pctPot);
+}
+
+// Lumina LED ULTRASONIC
+void trimiteLuminaUltrasonic() {
+  int pct = map(pwmUltrasonic, 0, 1023, 0, 100);
+  Blynk.virtualWrite(V5, pct);
+}
+
+// Lumina LED POT
+void trimiteLuminaPot() {
+  int pct = map(pwmPot, 0, 1023, 0, 100);
+  Blynk.virtualWrite(V8, pct);
+}
+
+// Trimite temperatura și umiditatea
+void trimiteDHT() {
+  float h = dht.readHumidity();
+  float t = dht.readTemperature();
+
+  // erori la citire date
+  if (isnan(h) || isnan(t)) {
+    Serial.println("Eroare: Citire DHT!");
+    return;
+  }
+
+  Serial.print("Umiditate: ");
+  Serial.print(h);
+  Serial.print("%  | Temperatura: ");
+  Serial.println(t);
+
+
+  // trimitem la aplicatie care le  afiseaza
+  Blynk.virtualWrite(V6, t);   
+... (113 lines left)

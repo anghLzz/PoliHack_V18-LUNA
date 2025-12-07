@@ -1,0 +1,71 @@
+/ obligatoriu de definit pt blynk
+#define BLYNK_TEMPLATE_ID "TMPL4QS-u8doD"
+#define BLYNK_TEMPLATE_NAME "LUNA"
+#define BLYNK_AUTH_TOKEN "7NM5dyrzzKq5zm8gwCPajNLOhWZTpDqG"
+
+
+// senzor apa
+const int SENZOR_PIN = 34;
+int value = 0;
+const int ZGOMOT_PRAG = 80;
+const int PRAG_LOW_START = 675;
+const int PRAG_MEDIUM_START = 1000;
+const int PRAG_HIGH_START = 1500;
+String PRAG = "Empty";
+
+
+// configuram reteaua prin care conectam deviceurile
+#include <WiFi.h>
+#include <BlynkSimpleEsp32.h>
+char ssid[] = "cloudflight-guest";
+char pass[] = "digitalfuture";
+
+
+
+BlynkTimer timer;
+WidgetLED led1(V13);
+
+void setup() {
+  Serial.begin(9600);
+  Serial.println("💧
+Sistem de monitorizare a nivelului apei initializat.");
+
+  Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass, IPAddress(192,168,35,188), 8080);
+    while (Blynk.connect() == false) {
+        // Wait until Blynk is connected
+    }
+
+    // blinkul conectat cu succes
+   Blynk.virtualWrite(V11,PRAG);
+}
+
+
+void loop() {
+  Blynk.run(); // start blynk
+
+  int value = analogRead(SENZOR_PIN);
+
+  String outputString = "Value: " + String(value) + " | W Level: "; // output water level
+
+  if (value <= PRAG_LOW_START) {
+    PRAG = "Empty";
+  }
+  else if (value >= PRAG_HIGH_START){
+    PRAG = "HIGH";
+  }
+  else if (value >= PRAG_MEDIUM_START) {
+    PRAG = "Medium";
+  } 
+  else {
+    PRAG = "LOW";
+  }
+
+
+  Serial.println(outputString);
+
+  // trimitem și prin Bridge
+  Blynk.virtualWrite(V11,PRAG);
+  Blynk.virtualWrite(V17,value);
+
+  delay(1000);
+}
